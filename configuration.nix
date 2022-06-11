@@ -125,7 +125,47 @@ fonts.fonts = with pkgs; [
 # List packages installed in system profile. To search, run:
 # $ nix search wget
 environment.systemPackages = with pkgs; [
+    btrfs-progs
+    dunst
+    feh
+    ffmpeg
+    ffmpegthumbnailer
+    flatpak
+    fzf
+    git
+    i3lock
+    imagemagick
+    light
+    lm_sensors
     neovim
+    ntfs3g
+    picom
+    python39Packages.six
+    scrot
+    stow
+    syncthing
+    tig
+    trash-cli
+    udiskie
+    unzip
+    w3m
+    wireguard-tools
+    xdotool
+    xorg.libXft
+    xorg.xauth
+    xorg.xf86videointel
+    xorg.xf86inputevdev
+    xorg.xf86inputsynaptics
+    xorg.xf86inputlibinput
+    xorg.xinit
+    xorg.xinput
+    xorg.xkbcomp
+    xorg.xorgserver
+    xorg.xrandr
+    xorg.xrdb
+    xorg.xset
+    youtube-dl
+    zsh
 ];
 
 nix = {
