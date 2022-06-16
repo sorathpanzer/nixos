@@ -42,6 +42,16 @@ i18n.defaultLocale = "pt_PT.utf8";
 
 # Enable the X11 windowing system.
 services.xserver.enable = true;
+services.xserver.windowManager.dwm.enable = true;
+services.xserver.displayManager.lightdm.enable = false;
+services.xserver.displayManager.startx.enable = true;
+
+
+#nixpkgs.overlays = [
+#	(final: prev: {
+#		dwm = prev.dwm.overrideAttrs (old: { src = /home/sorath/.config/suckless/dwm-6.3 ;});
+#	})
+#];
 
 # Configure keymap in X11
     services.xserver = {
@@ -53,7 +63,7 @@ services.xserver.enable = true;
 console.keyMap = "pt-latin1";
 
 # Enable CUPS to print documents.
-services.printing.enable = true;
+services.printing.enable = false;
 
 # Enable sound with pipewire.
 sound.enable = true;
@@ -89,15 +99,19 @@ users.extraUsers.sorath = {
 # Some programs need SUID wrappers, can be configured further or are
 # started in user sessions.
 # programs.mtr.enable = true;
-# programs.gnupg.agent = {
-#   enable = true;
-#   enableSSHSupport = true;
-# };
+#programs.gnupg.agent = {
+#  enable = true;
+#  enableSSHSupport = true;
+#};
 
 # List services that you want to enable:
 
 # Enable the OpenSSH daemon.
-# services.openssh.enable = true;
+services.openssh.enable = true;
+services.sshd.enable = true;
+
+services.openssh.passwordAuthentication = true;
+services.openssh.permitRootLogin = "yes";
 
 # Open ports in the firewall.
 # networking.firewall.allowedTCPPorts = [ ... ];
@@ -151,21 +165,29 @@ environment.systemPackages = with pkgs; [
     w3m
     wireguard-tools
     xdotool
-    xorg.libXft
-    xorg.xauth
-    xorg.xf86videointel
-    xorg.xf86inputevdev
-    xorg.xf86inputsynaptics
-    xorg.xf86inputlibinput
-    xorg.xinit
+#    xorg.libX11
+#    xorg.libXft
+#    xorg.xauth
+#    xorg.xf86inputevdev
+#    xorg.xf86inputsynaptics
+#    xorg.xf86inputlibinput
+#    xorg.xinit
     xorg.xinput
-    xorg.xkbcomp
-    xorg.xorgserver
+#    xorg.xkbcomp
+#    xorg.xorgserver
     xorg.xrandr
     xorg.xrdb
     xorg.xset
     youtube-dl
     zsh
+    gnumake
+    gcc
+    xorg.libXext
+    xorg.libXinerama
+    xorg.libXrandr
+    xorg.xrandr
+#    xorg.libXrender
+#    river
 ];
 
 nix = {
