@@ -13,7 +13,10 @@ imports =
     splashImage = null;
     #enableCryptodisk = true;
   };
-  
+
+  #boot.loader.systemd-boot.enable = true;
+  #boot.loader.efi.canTouchEfiVariables = true;
+
   #boot.initrd.luks.devices."luks-".keyfile = "/crypto_keyfile.bin";
   #boot.initrd.secrets = {
   #  "crypto_keyfile.bin = null;
@@ -28,7 +31,10 @@ imports =
   time.timeZone = "Europe/Lisbon";
   i18n.defaultLocale = "pt_PT.utf8";
   console.keyMap = "pt-latin1";
-  services.xserver.layout = "pt";
+  services.xserver = {
+    layout = "pt";
+    libinput.enable = true;
+  };
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.sorath = {
@@ -42,8 +48,9 @@ imports =
   environment.systemPackages = with pkgs; [
      btrfs-progs dunst feh ffmpeg ffmpegthumbnailer fzf git i3lock imagemagick light lm_sensors
      neovim ntfs3g picom python39Packages.six scrot stow syncthing tig trash-cli udiskie unzip
-     w3m wireguard-tools xdotool youtube-dl gnumake gcc python39Packages.pip xclip
-    (pkgs.st.overrideAttrs (oldAttrs: {
+     w3m wireguard-tools xdotool youtube-dl gnumake gcc python39Packages.pip xclip ueberzug
+     python39Packages.adblock lf
+   (pkgs.st.overrideAttrs (oldAttrs: {
       name = "st";
       src = /home/sorath/.config/suckless/st-0.8.5;
     }))  
@@ -74,6 +81,27 @@ imports =
     displayManager.startx.enable = true;
   };
 
-  system.stateVersion = "22.05"; # Did you read the comment?
+# Enable sound
+  sound.enable = true;
+  hardware.pulseaudio.enable = false;
+  security.rtkit.enable = true;
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    pulse.enable = true;
+  };
 
+  nix = {
+    autoOptimiseStore = true;
+    gc.automatic = true;
+    gc.dates = "weekly";
+    gc.options = "--delete-older-than 30d";
+  };  
+
+  system.autoUpgrade = {
+    enable = true;
+    dates = "weekly";
+  };
+
+  system.stateVersion = "22.05"; # Did you read the comment?
 }
