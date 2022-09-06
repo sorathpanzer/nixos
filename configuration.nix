@@ -1,10 +1,7 @@
 { config, pkgs, ... }:
 
 {
-imports =
-    [
-        ./hardware-configuration.nix
-    ];
+imports = [ ./hardware-configuration.nix ];
 
   boot = {
     loader.grub = {
@@ -89,7 +86,6 @@ imports =
   programs.adb.enable = true;
   sound.enable = true;
   hardware.pulseaudio.enable = false;
-  security.rtkit.enable = true;
   time.timeZone = "Europe/Lisbon";
   i18n.defaultLocale = "pt_PT.utf8";
   console.keyMap = "pt-latin1";
