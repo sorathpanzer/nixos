@@ -21,32 +21,32 @@ imports =
     #};
   };
 
-  networking {
+  networking = {
     hostName = "VirtualX";
-    networking.networkmanager.enable = true;
+    networkmanager.enable = true;
   };
 
   services = {
     syncthing.enable = true;
-      xserver = {
+    pipewire = {
+      enable = true;
+      alsa.enable = true;
+      pulse.enable = true;
+    };
+    xserver = {
+      enable = true;
+      windowManager.dwm.enable = true;
+      displayManager.lightdm.enable = false;
+      displayManager.startx.enable = true;
+      layout = "pt";
+      libinput = {
         enable = true;
-        windowManager.dwm.enable = true;
-        displayManager.lightdm.enable = false;
-        displayManager.startx.enable = true;
-        layout = "pt";
-        pipewire {
-          enable = true;
-          alsa.enable = true;
-          pulse.enable = true;
+        touchpad = {
+          accelProfile = "adaptive";
+          naturalScrolling = true;
+          tapping = false;
         };
-        libinput = {
-          enable = true;
-          touchpad = {
-            accelProfile = "adaptive";
-            naturalScrolling = true;
-            tapping = false;
-          };
-        };
+      };
     };
   };
 
