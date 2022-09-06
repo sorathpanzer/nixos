@@ -6,7 +6,6 @@ imports =
         ./hardware-configuration.nix
     ];
 
-# Bootloader.
   boot = {
     loader.grub = {
       enable = true;
@@ -22,27 +21,35 @@ imports =
     #};
   };
 
-  # Networking
-  networking.hostName = "nixos"; # Define your hostname.
-  networking.networkmanager.enable = true;
+  networking {
+    hostName = "VirtualX";
+    networking.networkmanager.enable = true;
+  };
 
-  # Set your time zone.
-  time.timeZone = "Europe/Lisbon";
-  i18n.defaultLocale = "pt_PT.utf8";
-  console.keyMap = "pt-latin1";
-  services.xserver = {
-    layout = "pt";
-    libinput = {
-      enable = true;
-      touchpad = {
-        accelProfile = "adaptive";
-        naturalScrolling = true;
-        tapping = false;
-      };
+  services = {
+    syncthing.enable = true;
+      xserver = {
+        enable = true;
+        windowManager.dwm.enable = true;
+        displayManager.lightdm.enable = false;
+        displayManager.startx.enable = true;
+        layout = "pt";
+        pipewire {
+          enable = true;
+          alsa.enable = true;
+          pulse.enable = true;
+        };
+        libinput = {
+          enable = true;
+          touchpad = {
+            accelProfile = "adaptive";
+            naturalScrolling = true;
+            tapping = false;
+          };
+        };
     };
   };
 
-  # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.sorath = {
     isNormalUser = true;
     description = "sorath";
@@ -50,7 +57,6 @@ imports =
     shell = pkgs.zsh;
   };
 
-  # List packages installed in system profile.
   environment.systemPackages = with pkgs; [
      btrfs-progs dunst feh ffmpeg ffmpegthumbnailer fzf git i3lock imagemagick light lm_sensors
      neovim ntfs3g picom python39Packages.six scrot stow syncthing tig trash-cli udiskie unzip
@@ -81,24 +87,12 @@ imports =
   ];
 
   programs.adb.enable = true;
-  syncthing.enable = true;
-
-  services.xserver = {
-    enable = true;
-    windowManager.dwm.enable = true;
-    displayManager.lightdm.enable = false;
-    displayManager.startx.enable = true;
-  };
-
-# Enable sound
   sound.enable = true;
   hardware.pulseaudio.enable = false;
   security.rtkit.enable = true;
-  services.pipewire = {
-    enable = true;
-    alsa.enable = true;
-    pulse.enable = true;
-  };
+  time.timeZone = "Europe/Lisbon";
+  i18n.defaultLocale = "pt_PT.utf8";
+  console.keyMap = "pt-latin1";
 
   nix = {
     autoOptimiseStore = true;
@@ -107,10 +101,11 @@ imports =
     gc.options = "--delete-older-than 30d";
   };
 
-  system.autoUpgrade = {
-    enable = true;
-    dates = "weekly";
+  system = {
+    autoUpgrade = {
+      enable = true;
+      dates = "weekly";
+    };
+    stateVersion = "22.05";
   };
-
-  system.stateVersion = "22.05"; # Did you read the comment?
 }
