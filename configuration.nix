@@ -2,30 +2,29 @@
 
 {
 imports =
-    [ 
-      ./hardware-configuration.nix
+    [
+        ./hardware-configuration.nix
     ];
 
-  # Bootloader.
-  boot.loader.grub = {
-    enable = true;
-    device = "/dev/sda";
-    splashImage = null;
-    #enableCryptodisk = true;
+# Bootloader.
+  boot = {
+    loader.grub = {
+      enable = true;
+      device = "/dev/sda";
+      splashImage = null;
+      #enableCryptodisk = true;
+    };
+    #initrd {
+    #  luks.devices."luks-".keyfile = "/crypto_keyfile.bin";
+    #  secrets = {
+    #   "crypto_keyfile.bin = null;
+    #  };
+    #};
   };
-
-  #boot.loader.systemd-boot.enable = true;
-  #boot.loader.efi.canTouchEfiVariables = true;
-
-  #boot.initrd.luks.devices."luks-".keyfile = "/crypto_keyfile.bin";
-  #boot.initrd.secrets = {
-  #  "crypto_keyfile.bin = null;
-  #};
 
   # Networking
   networking.hostName = "nixos"; # Define your hostname.
   networking.networkmanager.enable = true;
-  # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
   # Set your time zone.
   time.timeZone = "Europe/Lisbon";
@@ -33,7 +32,14 @@ imports =
   console.keyMap = "pt-latin1";
   services.xserver = {
     layout = "pt";
-    libinput.enable = true;
+    libinput = {
+      enable = true;
+      touchpad = {
+        accelProfile = "adaptive";
+        naturalScrolling = true;
+        tapping = false;
+      };
+    };
   };
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
@@ -53,26 +59,29 @@ imports =
    (pkgs.st.overrideAttrs (oldAttrs: {
       name = "st";
       src = /home/sorath/.config/suckless/st-0.8.5;
-    }))  
+    }))
     (pkgs.dwmblocks.overrideAttrs (oldAttrs: {
       name = "dwmblocks";
       src = /home/sorath/.config/suckless/dwmblocks;
-    }))  
+    }))
     (pkgs.sxiv.overrideAttrs (oldAttrs: {
       name = "sxiv";
       src = /home/sorath/.config/suckless/sxiv;
-    }))  
+    }))
     (pkgs.dmenu.overrideAttrs (oldAttrs: {
       name = "dmenu";
       src = /home/sorath/.config/suckless/dmenu-5.1;
-    }))  
+    }))
   ];
 
   nixpkgs.overlays = [
     (final: prev: {
       dwm = prev.dwm.overrideAttrs (old: { src = /home/sorath/.config/suckless/dwm-6.3 ;});
-    })  
+    })
   ];
+
+  programs.adb.enable = true;
+  syncthing.enable = true;
 
   services.xserver = {
     enable = true;
@@ -96,7 +105,7 @@ imports =
     gc.automatic = true;
     gc.dates = "weekly";
     gc.options = "--delete-older-than 30d";
-  };  
+  };
 
   system.autoUpgrade = {
     enable = true;
