@@ -11,8 +11,8 @@ imports = [ ./hardware-configuration.nix ];
       splashImage = null;
       enableCryptodisk = true;
     };
-    initrd {
-      luks.devices."luks-".keyfile = "/crypto_keyfile.bin";
+    initrd = {
+      luks.devices."luks-".keyFile = "/crypto_keyfile.bin";
       secrets = {
        "crypto_keyfile.bin" = null;
       };
@@ -25,7 +25,6 @@ imports = [ ./hardware-configuration.nix ];
     firewall.enable = true;
     wireguard = {
       enable = true;
-      interfaces = true;
     };
     #wg-quick.interfaces.wg0.autostart;
   };
