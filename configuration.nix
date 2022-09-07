@@ -4,26 +4,34 @@
 imports = [ ./hardware-configuration.nix ];
 
   boot = {
+    loader.timeout = 0;
     loader.grub = {
       enable = true;
       device = "/dev/sda";
       splashImage = null;
-      #enableCryptodisk = true;
+      enableCryptodisk = true;
     };
-    #initrd {
-    #  luks.devices."luks-".keyfile = "/crypto_keyfile.bin";
-    #  secrets = {
-    #   "crypto_keyfile.bin = null;
-    #  };
-    #};
+    initrd {
+      luks.devices."luks-".keyfile = "/crypto_keyfile.bin";
+      secrets = {
+       "crypto_keyfile.bin" = null;
+      };
+    };
   };
 
   networking = {
     hostName = "VirtualX";
     networkmanager.enable = true;
+    firewall.enable = true;
+    wireguard = {
+      enable = true;
+      interfaces = true;
+    };
+    #wg-quick.interfaces.wg0.autostart;
   };
 
   services = {
+    #getty.autologinUser = "sorath";
     syncthing.enable = true;
     pipewire = {
       enable = true;
@@ -57,7 +65,7 @@ imports = [ ./hardware-configuration.nix ];
   environment.systemPackages = with pkgs; [
      btrfs-progs dunst feh ffmpeg ffmpegthumbnailer fzf git i3lock imagemagick light lm_sensors
      neovim ntfs3g picom python39Packages.six scrot stow syncthing tig trash-cli udiskie unzip
-     w3m wireguard-tools xdotool youtube-dl gnumake gcc python39Packages.pip xclip ueberzug
+     w3m xdotool youtube-dl gnumake gcc python39Packages.pip xclip ueberzug
      python39Packages.adblock lf
    (pkgs.st.overrideAttrs (oldAttrs: {
       name = "st";
@@ -84,6 +92,7 @@ imports = [ ./hardware-configuration.nix ];
   ];
 
   programs.adb.enable = true;
+  programs.light.enable = true;
   sound.enable = true;
   hardware.pulseaudio.enable = false;
   time.timeZone = "Europe/Lisbon";
