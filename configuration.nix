@@ -14,7 +14,7 @@ imports = [ ./hardware-configuration.nix ];
     initrd = {
       luks.devices."luks-".keyFile = "/crypto_keyfile.bin";
       secrets = {
-       "crypto_keyfile.bin" = null;
+        "/crypto_keyfile.bin" = null;
       };
     };
   };
