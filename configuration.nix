@@ -4,15 +4,17 @@
 imports = [ ./hardware-configuration.nix ];
 
   boot = {
-    loader.timeout = 0;
-    loader.grub = {
-      enable = true;
-      device = "/dev/sda";
-      splashImage = null;
-      enableCryptodisk = true;
+    consoleLogLevel = 0;
+    kernelParams = [ "quiet" "udev.log_level=3" ];
+    loader = {
+      systemd-boot.enable = true;
+      efi.canTouchEfiVariables = true;
+      efi.efiSysMountPoint = "/boot/efi";
     };
     initrd = {
-      luks.devices."luks-".keyFile = "/crypto_keyfile.bin";
+      verbose = true;
+      luks.devices."luks-0e6a7cba-817f-4483-a93b-66bc366d49a1".device = "/dev/disk/by-uuid/0e6a7cba-817f-4483-a93b-66bc366d49a1";
+      luks.devices."luks-0e6a7cba-817f-4483-a93b-66bc366d49a1".keyFile = "/crypto_keyfile.bin";
       secrets = {
         "/crypto_keyfile.bin" = null;
       };
@@ -30,7 +32,7 @@ imports = [ ./hardware-configuration.nix ];
   };
 
   services = {
-    #getty.autologinUser = "sorath";
+    getty.autologinUser = "sorath";
     syncthing.enable = true;
     pipewire = {
       enable = true;
@@ -62,10 +64,11 @@ imports = [ ./hardware-configuration.nix ];
   };
 
   environment.systemPackages = with pkgs; [
-     btrfs-progs dunst feh ffmpeg ffmpegthumbnailer fzf git i3lock imagemagick light lm_sensors
-     neovim ntfs3g picom python39Packages.six scrot stow syncthing tig trash-cli udiskie unzip
-     w3m xdotool youtube-dl gnumake gcc python39Packages.pip xclip ueberzug
-     python39Packages.adblock lf
+     android-tools btrfs-progs dunst feh ffmpeg ffmpegthumbnailer file firefox fzf gcc git gnumake groff i3lock imagemagick 
+     keepassxc killall lf light lm_sensors libreoffice-still mpv ncdu neovim ntfs3g pandoc picom poppler_utils qemu
+     python310Packages.adblock python39Packages.pip python39Packages.six qutebrowser scrot sox stow syncthing tdesktop
+     tig trash-cli udiskie ueberzug unzip usbutils w3m xclip xdg-user-dirs xdotool xorg.xf86videointel xorg.xinput xorg.xrandr
+     xorg.xrdb xorg.xset youtube-dl zathura
    (pkgs.st.overrideAttrs (oldAttrs: {
       name = "st";
       src = /home/sorath/.config/suckless/st-0.8.5;
