@@ -13,8 +13,6 @@ imports = [ ./hardware-configuration.nix ];
     };
     initrd = {
       verbose = true;
-      luks.devices."luks-0e6a7cba-817f-4483-a93b-66bc366d49a1".device = "/dev/disk/by-uuid/0e6a7cba-817f-4483-a93b-66bc366d49a1";
-      luks.devices."luks-0e6a7cba-817f-4483-a93b-66bc366d49a1".keyFile = "/crypto_keyfile.bin";
       secrets = {
         "/crypto_keyfile.bin" = null;
       };
@@ -34,6 +32,7 @@ imports = [ ./hardware-configuration.nix ];
   services = {
     getty.autologinUser = "sorath";
     syncthing.enable = true;
+    flatpak.enable = true;
     pipewire = {
       enable = true;
       alsa.enable = true;
@@ -59,12 +58,12 @@ imports = [ ./hardware-configuration.nix ];
   users.users.sorath = {
     isNormalUser = true;
     description = "sorath";
-    extraGroups = [ "networkmanager" "wheel" ];
+    extraGroups = [ "networkmanager" "wheel" "disk" ];
     shell = pkgs.zsh;
   };
 
   environment.systemPackages = with pkgs; [
-     android-tools btrfs-progs dunst feh ffmpeg ffmpegthumbnailer file firefox fzf gcc git gnumake groff i3lock imagemagick 
+     android-tools btrfs-progs dunst feh ffmpeg ffmpegthumbnailer file firefox fzf gcc git gnumake groff i3lock imagemagick
      keepassxc killall lf light lm_sensors libreoffice-still mpv ncdu neovim ntfs3g pandoc picom poppler_utils qemu
      python310Packages.adblock python39Packages.pip python39Packages.six qutebrowser scrot sox stow syncthing tdesktop
      tig trash-cli udiskie ueberzug unzip usbutils w3m xclip xdg-user-dirs xdotool xorg.xf86videointel xorg.xinput xorg.xrandr
@@ -100,6 +99,11 @@ imports = [ ./hardware-configuration.nix ];
   time.timeZone = "Europe/Lisbon";
   i18n.defaultLocale = "pt_PT.utf8";
   console.keyMap = "pt-latin1";
+
+  xdg.portal = {
+    enable = true;
+    extraPortals = with pkgs; [ xdg-desktop-portal-gtk ];
+  };
 
   nix = {
     autoOptimiseStore = true;
