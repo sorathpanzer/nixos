@@ -70,7 +70,7 @@ imports = [ ./hardware-configuration.nix ];
      xorg.xrdb xorg.xset youtube-dl zathura
    (pkgs.st.overrideAttrs (oldAttrs: {
       name = "st";
-      src = /home/sorath/.config/suckless/st-0.8.5;
+      src = /home/sorath/.config/suckless/st-0.9;
     }))
     (pkgs.dwmblocks.overrideAttrs (oldAttrs: {
       name = "dwmblocks";
@@ -82,13 +82,13 @@ imports = [ ./hardware-configuration.nix ];
     }))
     (pkgs.dmenu.overrideAttrs (oldAttrs: {
       name = "dmenu";
-      src = /home/sorath/.config/suckless/dmenu-5.1;
+      src = /home/sorath/.config/suckless/dmenu-5.2;
     }))
   ];
 
   nixpkgs.overlays = [
     (final: prev: {
-      dwm = prev.dwm.overrideAttrs (old: { src = /home/sorath/.config/suckless/dwm-6.3 ;});
+      dwm = prev.dwm.overrideAttrs (old: { src = /home/sorath/.config/suckless/dwm-6.4 ;});
     })
   ];
 
