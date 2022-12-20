@@ -62,6 +62,18 @@ imports = [ ./hardware-configuration.nix ];
     shell = pkgs.zsh;
   };
 
+  security = {
+    sudo.enable = false;
+    doas = {
+      enable = true;
+      extraRules = [{
+        users = [ "otto" ];
+        keepEnv = true;
+        persist = true;  
+      }];
+    };
+  };
+
   environment.systemPackages = with pkgs; [
      android-tools btrfs-progs dunst feh ffmpeg ffmpegthumbnailer file firefox fzf gcc git gnumake groff i3lock imagemagick
      keepassxc killall lf light lm_sensors libreoffice-still mpv ncdu neovim ntfs3g pandoc picom poppler_utils qemu
