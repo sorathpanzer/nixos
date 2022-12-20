@@ -67,7 +67,7 @@ imports = [ ./hardware-configuration.nix ];
     doas = {
       enable = true;
       extraRules = [{
-        users = [ "otto" ];
+        users = [ "sorath" ];
         keepEnv = true;
         persist = true;  
       }];
