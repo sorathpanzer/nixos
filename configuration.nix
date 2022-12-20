@@ -106,7 +106,7 @@ imports = [ ./hardware-configuration.nix ];
   };
 
   nix = {
-    autoOptimiseStore = true;
+    settings.auto-optimize-store = true;
     gc.automatic = true;
     gc.dates = "weekly";
     gc.options = "--delete-older-than 30d";
