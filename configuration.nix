@@ -13,9 +13,9 @@ imports = [ ./hardware-configuration.nix ];
     };
     initrd = {
       verbose = true;
-      secrets = {
-        "/crypto_keyfile.bin" = null;
-      };
+      #secrets = {
+      #  "/crypto_keyfile.bin" = null;
+      #};
     };
   };
 
