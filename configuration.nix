@@ -4,6 +4,7 @@
 imports = [ ./hardware-configuration.nix ];
 
   boot = {
+    supportedFilesystems = [ "zfs" ];
     consoleLogLevel = 0;
     kernelParams = [ "quiet" "udev.log_level=3" ];
     loader = {
@@ -21,6 +22,7 @@ imports = [ ./hardware-configuration.nix ];
 
   networking = {
     hostName = "VirtualX";
+    networking.hostId = "HOSTID";
     networkmanager.enable = true;
     firewall.enable = true;
     wireguard = {
