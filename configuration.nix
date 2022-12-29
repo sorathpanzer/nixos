@@ -22,7 +22,7 @@ imports = [ ./hardware-configuration.nix ];
 
   networking = {
     hostName = "VirtualX";
-    networking.hostId = "HOSTID";
+    hostId = "HOSTID";
     networkmanager.enable = true;
     firewall.enable = true;
     wireguard = {
