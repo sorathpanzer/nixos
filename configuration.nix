@@ -14,9 +14,9 @@ imports = [ ./hardware-configuration.nix ];
     };
     initrd = {
       verbose = true;
-      #secrets = {
-      #  "/crypto_keyfile.bin" = null;
-      #};
+      secrets = {
+        "/crypto_keyfile.bin" = null;
+      };
     };
   };
 
@@ -68,11 +68,17 @@ imports = [ ./hardware-configuration.nix ];
     sudo.enable = false;
     doas = {
       enable = true;
-      extraRules = [{
-        users = [ "sorath" ];
-        keepEnv = true;
-        persist = true;  
-      }];
+      extraConfig = ''
+      permit persist sorath as root
+      permit nopass sorath as root cmd wg-quick
+      permit nopass sorath cmd wg
+      permit nopass sorath cmd reboot
+      permit nopass sorath cmd poweroff
+      permit nopass sorath cmd mount
+      permit nopass sorath cmd setleds
+      permit nopass sorath cmd nix-channel
+      permit nopass sorath cmd nixos-rebuild
+      '';
     };
   };
 
