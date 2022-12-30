@@ -14,10 +14,16 @@ imports = [ ./hardware-configuration.nix ];
     };
     initrd = {
       verbose = true;
-      secrets = {
-        "/crypto_keyfile.bin" = null;
-      };
+      #secrets = {
+        #"/crypto_keyfile.bin" = null;
+      #};
     };
+  };
+
+fileSystems."/media/Bunker" = {
+    device = "192.168.1.104:/mnt/Bunker/Vault";
+    fsType = "nfs";
+    options = [ "noauto" ];
   };
 
   networking = {
