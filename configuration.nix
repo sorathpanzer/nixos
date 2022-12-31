@@ -70,24 +70,6 @@ fileSystems."/media/Bunker" = {
     shell = pkgs.zsh;
   };
 
-  security = {
-    sudo.enable = false;
-    doas = {
-      enable = true;
-      extraConfig = ''
-      permit persist sorath as root
-      permit nopass sorath as root cmd wg-quick
-      permit nopass sorath cmd wg
-      permit nopass sorath cmd reboot
-      permit nopass sorath cmd poweroff
-      permit nopass sorath cmd mount
-      permit nopass sorath cmd setleds
-      permit nopass sorath cmd nix-channel
-      permit nopass sorath cmd nixos-rebuild
-      '';
-    };
-  };
-
   environment.systemPackages = with pkgs; [
      android-tools btrfs-progs dunst feh ffmpeg ffmpegthumbnailer file firefox fzf gcc git gnumake groff i3lock imagemagick
      keepassxc killall lf light lm_sensors libreoffice-still mpv ncdu neovim ntfs3g pandoc picom poppler_utils qemu
