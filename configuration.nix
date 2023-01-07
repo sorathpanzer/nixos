@@ -12,12 +12,7 @@ imports = [ ./hardware-configuration.nix ];
       efi.canTouchEfiVariables = true;
       efi.efiSysMountPoint = "/boot/efi";
     };
-    initrd = {
-      verbose = true;
-      secrets = {
-        "/crypto_keyfile.bin" = null;
-      };
-    };
+    initrd.secrets = { "/crypto_keyfile.bin" = null; };
   };
 
 fileSystems."/media/Bunker" = {
