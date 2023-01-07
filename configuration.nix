@@ -7,12 +7,12 @@ imports = [ ./hardware-configuration.nix ];
     supportedFilesystems = [ "zfs" ];
     consoleLogLevel = 0;
     kernelParams = [ "quiet" "udev.log_level=3" ];
+    initrd.secrets = { "/crypto_keyfile.bin" = null; };
     loader = {
       systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;
       efi.efiSysMountPoint = "/boot/efi";
     };
-    initrd.secrets = { "/crypto_keyfile.bin" = null; };
   };
 
 fileSystems."/media/Bunker" = {
