@@ -15,10 +15,17 @@ imports = [ ./hardware-configuration.nix ];
     };
   };
 
-fileSystems."/media/Bunker" = {
+  fileSystems."/media/Bunker" = {
     device = "192.168.1.104:/mnt/Bunker/Vault";
     fsType = "nfs";
     options = [ "noauto" ];
+  };
+
+  zramSwap = {
+    enable = true;
+    algorithm = "zstd";
+    #swapDevices = 4;
+    #numDevices = 4;
   };
 
   networking = {
