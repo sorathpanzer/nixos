@@ -24,8 +24,8 @@ imports = [ ./hardware-configuration.nix ];
   zramSwap = {
     enable = true;
     algorithm = "zstd";
-    #swapDevices = 4;
-    #numDevices = 4;
+    swapDevices = 4;
+    numDevices = 4;
   };
 
   networking = {
@@ -77,7 +77,7 @@ imports = [ ./hardware-configuration.nix ];
      keepassxc killall lf light lm_sensors libreoffice-still mpv ncdu neovim ntfs3g openssh pandoc picom poppler_utils qemu
      python310Packages.adblock python39Packages.pip python39Packages.six qutebrowser scrot sox stow syncthing tdesktop
      tig trash-cli udiskie ueberzug unzip usbutils w3m xclip xdg-user-dirs xdotool xorg.xf86videointel xorg.xinput xorg.xrandr
-     xorg.xrdb xorg.xset youtube-dl zathura
+     xorg.xrdb xorg.xset youtube-dl zathura pulseaudio
    (pkgs.st.overrideAttrs (oldAttrs: {
       name = "st";
       src = /home/sorath/.config/suckless/st-0.9;
@@ -105,7 +105,6 @@ imports = [ ./hardware-configuration.nix ];
   programs.adb.enable = true;
   programs.light.enable = true;
   sound.enable = true;
-  hardware.pulseaudio.enable = false;
   time.timeZone = "Europe/Lisbon";
   i18n.defaultLocale = "pt_PT.utf8";
   console.keyMap = "pt-latin1";
