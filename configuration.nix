@@ -41,7 +41,11 @@ imports = [ ./hardware-configuration.nix ];
 
   services = {
     getty.autologinUser = "sorath";
-    syncthing.enable = true;
+    syncthing = {
+      enable = true;
+      user = "sorath";
+      configDir = "/home/sorath/.config/syncthing";
+    };
     flatpak.enable = true;
     pipewire = {
       enable = true;
