@@ -30,9 +30,10 @@ imports = [ ./hardware-configuration.nix ];
 
   networking = {
     hostName = "VirtualX";
-    hostId = "HOSTID";
+    hostId = "c02e715b";
     networkmanager.enable = true;
     firewall.enable = true;
+    nameservers = [ "1.1.1.2" "1.0.0.2" ];
     wireguard = {
       enable = true;
     };
@@ -58,6 +59,11 @@ imports = [ ./hardware-configuration.nix ];
       displayManager.lightdm.enable = false;
       displayManager.startx.enable = true;
       layout = "pt";
+      videoDrivers = [ "intel" ];
+      deviceSection = ''
+        Option "DRI" "2"
+    	Option "TearFree" "true"
+      '';
       libinput = {
         enable = true;
         touchpad = {
@@ -68,6 +74,16 @@ imports = [ ./hardware-configuration.nix ];
       };
     };
   };
+
+  #hardware.opengl = {
+    #enable = true;
+    #extraPackages = with pkgs; [
+      #intel-media-driver # LIBVA_DRIVER_NAME=iHD
+      #vaapiIntel         # LIBVA_DRIVER_NAME=i965 (older but works better for Firefox/Chromium)
+      #vaapiVdpau
+      #libvdpau-va-gl
+    #];
+  #};
 
   users.users.sorath = {
     isNormalUser = true;
