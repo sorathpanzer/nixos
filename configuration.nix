@@ -75,6 +75,16 @@ imports = [ ./hardware-configuration.nix ];
     };
   };
 
+  security.sudo.extraRules= [
+    {  users = [ "sorath" ];
+      commands = [
+        { command = "/run/current-system/sw/bin/reboot,/run/current-system/sw/bin/poweroff,/run/current-system/sw/bin/zpool" ;
+          options= [ "NOPASSWD" ];
+        }
+      ];
+    }
+  ];
+
   #hardware.opengl = {
     #enable = true;
     #extraPackages = with pkgs; [
