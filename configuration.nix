@@ -1,13 +1,21 @@
-{ config, pkgs, ... }:
+{ config, pkgs, ... }: let
+  flake-compat = builtins.fetchTarball "https://github.com/edolstra/flake-compat/archive/master.tar.gz";
 
-{
-imports = [ ./hardware-configuration.nix ];
+  hyprland = (import flake-compat {
+    src = builtins.fetchTarball "https://github.com/hyprwm/Hyprland/archive/master.tar.gz";
+  }).defaultNix;
+
+in {
+imports = [ ./hardware-configuration.nix
+            hyprland.nixosModules.default
+          ];
 
   boot = {
     supportedFilesystems = [ "zfs" ];
     consoleLogLevel = 0;
     kernelParams = [ "quiet" "udev.log_level=3" ];
     initrd.secrets = { "/crypto_keyfile.bin" = null; };
+    initrd.verbose = false;
     loader = {
       systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;
@@ -29,11 +37,10 @@ imports = [ ./hardware-configuration.nix ];
   };
 
   networking = {
-    hostName = "VirtualX";
+    hostName = "LegionX";
     hostId = "c02e715b";
     networkmanager.enable = true;
     firewall.enable = true;
-    nameservers = [ "1.1.1.2" "1.0.0.2" ];
     wireguard = {
       enable = true;
     };
@@ -78,7 +85,7 @@ imports = [ ./hardware-configuration.nix ];
   security.sudo.extraRules= [
     {  users = [ "sorath" ];
       commands = [
-        { command = "/run/current-system/sw/bin/reboot,/run/current-system/sw/bin/poweroff,/run/current-system/sw/bin/zpool" ;
+        { command = "/run/current-system/sw/bin/reboot,/run/current-system/sw/bin/poweroff,/run/current-system/sw/bin/zpool,/run/current-system/sw/bin/wg,/run/current-system/sw/bin/setleds" ;
           options= [ "NOPASSWD" ];
         }
       ];
@@ -107,7 +114,7 @@ imports = [ ./hardware-configuration.nix ];
      keepassxc killall lf light lm_sensors libreoffice-still mpv ncdu neovim ntfs3g openssh pandoc picom poppler_utils qemu
      python310Packages.adblock python39Packages.pip python39Packages.six qutebrowser scrot sox stow syncthing tdesktop
      tig trash-cli udiskie ueberzug unzip usbutils w3m xclip xdg-user-dirs xdotool xorg.xf86videointel xorg.xinput xorg.xrandr
-     xorg.xrdb xorg.xset youtube-dl zathura pulseaudio
+      xorg.xrdb xorg.xset youtube-dl zathura pulseaudio dmenu signal-desktop bzip2 kitty river alacritty foot wayland-protocols waybar hyprpaper hyprland
    (pkgs.st.overrideAttrs (oldAttrs: {
       name = "st";
       src = /home/sorath/.config/suckless/st-0.9;
@@ -120,20 +127,41 @@ imports = [ ./hardware-configuration.nix ];
       name = "sxiv";
       src = /home/sorath/.config/suckless/sxiv;
     }))
-    (pkgs.dmenu.overrideAttrs (oldAttrs: {
-      name = "dmenu";
-      src = /home/sorath/.config/suckless/dmenu-5.2;
-    }))
   ];
 
   nixpkgs.overlays = [
     (final: prev: {
       dwm = prev.dwm.overrideAttrs (old: { src = /home/sorath/.config/suckless/dwm-6.4 ;});
+      waybar = prev.waybar.overrideAttrs (oldAttrs: {
+        mesonFlags = oldAttrs.mesonFlags ++ [ "-Dexperimental=true" ];
+      });
     })
   ];
 
-  programs.adb.enable = true;
-  programs.light.enable = true;
+  #nixpkgs.overlays = [
+    #(self: super: {
+      #waybar = super.waybar.overrideAttrs (oldAttrs: {
+        #mesonFlags = oldAttrs.mesonFlags ++ [ "-Dexperimental=true" ];
+      #});
+    #})
+  #];
+
+  programs = {
+    adb.enable = true;
+    light.enable = true;
+    waybar.enable = true;
+    hyprland = {
+      enable = true;
+      package = hyprland.packages.${pkgs.system}.default;
+      xwayland = {
+        enable = true;
+        hidpi = true;
+      };
+
+      nvidiaPatches = false;
+    };
+  };
+
   sound.enable = true;
   time.timeZone = "Europe/Lisbon";
   i18n.defaultLocale = "pt_PT.utf8";
@@ -149,6 +177,8 @@ imports = [ ./hardware-configuration.nix ];
     gc.automatic = true;
     gc.dates = "weekly";
     gc.options = "--delete-older-than 30d";
+    #extraOptions = "experimental-features = nix-command flakes";
+    #package = pkgs.nixFlakes;
   };
 
   system = {
