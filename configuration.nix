@@ -182,6 +182,7 @@ imports = [ ./hardware-configuration.nix
   };
 
   system = {
+    copySystemConfiguration = true;
     autoUpgrade = {
       enable = true;
       dates = "weekly";
