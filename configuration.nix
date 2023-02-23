@@ -38,7 +38,7 @@ imports = [ ./hardware-configuration.nix
 
   networking = {
     hostName = "LegionX";
-    hostId = "c02e715b";
+    hostId = "HOSTID";
     networkmanager.enable = true;
     firewall.enable = true;
     wireguard = {
