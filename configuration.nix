@@ -1,14 +1,7 @@
-{ config, pkgs, ... }: let
-  flake-compat = builtins.fetchTarball "https://github.com/edolstra/flake-compat/archive/master.tar.gz";
+{ config, pkgs, ... }:
 
-  hyprland = (import flake-compat {
-    src = builtins.fetchTarball "https://github.com/hyprwm/Hyprland/archive/master.tar.gz";
-  }).defaultNix;
-
-in {
-imports = [ ./hardware-configuration.nix
-            hyprland.nixosModules.default
-          ];
+{
+imports = [ ./hardware-configuration.nix ];
 
   boot = {
     supportedFilesystems = [ "zfs" ];
@@ -38,7 +31,7 @@ imports = [ ./hardware-configuration.nix
 
   networking = {
     hostName = "LegionX";
-    hostId = "HOSTID";
+    hostId = "ca1d6250";
     networkmanager.enable = true;
     firewall.enable = true;
     wireguard = {
@@ -66,7 +59,7 @@ imports = [ ./hardware-configuration.nix
       displayManager.lightdm.enable = false;
       displayManager.startx.enable = true;
       layout = "pt";
-      videoDrivers = [ "intel" ];
+      videoDrivers = [ "nvidia" ];
       deviceSection = ''
         Option "DRI" "2"
     	Option "TearFree" "true"
@@ -92,15 +85,19 @@ imports = [ ./hardware-configuration.nix
     }
   ];
 
-  #hardware.opengl = {
-    #enable = true;
-    #extraPackages = with pkgs; [
-      #intel-media-driver # LIBVA_DRIVER_NAME=iHD
-      #vaapiIntel         # LIBVA_DRIVER_NAME=i965 (older but works better for Firefox/Chromium)
-      #vaapiVdpau
-      #libvdpau-va-gl
-    #];
-  #};
+  hardware = {
+    #video.hidpi.enable = true;
+    nvidia.package = config.boot.kernelPackages.nvidiaPackages.stable;
+    opengl = {
+      enable = true;
+      extraPackages = with pkgs; [
+        intel-media-driver # LIBVA_DRIVER_NAME=iHD
+        vaapiIntel         # LIBVA_DRIVER_NAME=i965 (older but works better for Firefox/Chromium)
+        vaapiVdpau
+        libvdpau-va-gl
+      ];
+    };
+  };
 
   users.users.sorath = {
     isNormalUser = true;
@@ -113,8 +110,8 @@ imports = [ ./hardware-configuration.nix
      android-tools btrfs-progs dunst feh ffmpeg ffmpegthumbnailer file firefox fzf gcc git gnumake groff i3lock imagemagick
      keepassxc killall lf light lm_sensors libreoffice-still mpv ncdu neovim ntfs3g openssh pandoc picom poppler_utils qemu
      python310Packages.adblock python39Packages.pip python39Packages.six qutebrowser scrot sox stow syncthing tdesktop
-     tig trash-cli udiskie ueberzug unzip usbutils w3m xclip xdg-user-dirs xdotool xorg.xf86videointel xorg.xinput xorg.xrandr
-      xorg.xrdb xorg.xset youtube-dl zathura pulseaudio dmenu signal-desktop bzip2 kitty river alacritty foot wayland-protocols waybar hyprpaper hyprland
+     tig trash-cli udiskie ueberzug unzip usbutils w3m xclip xdg-user-dirs xdotool xorg.xf86videointel xorg.xinput xorg.xrandr jq
+      xorg.xrdb xorg.xset youtube-dl zathura pulseaudio dmenu signal-desktop bzip2 foot wayland-protocols hyprpaper mpvpaper waybar river dwl ydotool
    (pkgs.st.overrideAttrs (oldAttrs: {
       name = "st";
       src = /home/sorath/.config/suckless/st-0.9;
@@ -129,37 +126,22 @@ imports = [ ./hardware-configuration.nix
     }))
   ];
 
-  nixpkgs.overlays = [
-    (final: prev: {
-      dwm = prev.dwm.overrideAttrs (old: { src = /home/sorath/.config/suckless/dwm-6.4 ;});
-      waybar = prev.waybar.overrideAttrs (oldAttrs: {
-        mesonFlags = oldAttrs.mesonFlags ++ [ "-Dexperimental=true" ];
-      });
-    })
-  ];
-
-  #nixpkgs.overlays = [
-    #(self: super: {
-      #waybar = super.waybar.overrideAttrs (oldAttrs: {
-        #mesonFlags = oldAttrs.mesonFlags ++ [ "-Dexperimental=true" ];
-      #});
-    #})
-  #];
+  nixpkgs = {
+    config.allowUnfree = true;
+    overlays = [
+      (self: super: {
+        dwm = super.dwm.overrideAttrs (old: { src = /home/sorath/.config/suckless/dwm-6.4 ;});
+        waybar = super.waybar.overrideAttrs (oldAttrs: {
+          mesonFlags = oldAttrs.mesonFlags ++ [ "-Dexperimental=true" ];
+        });
+      })
+    ];
+  };
 
   programs = {
     adb.enable = true;
     light.enable = true;
     waybar.enable = true;
-    hyprland = {
-      enable = true;
-      package = hyprland.packages.${pkgs.system}.default;
-      xwayland = {
-        enable = true;
-        hidpi = true;
-      };
-
-      nvidiaPatches = false;
-    };
   };
 
   sound.enable = true;
@@ -177,8 +159,8 @@ imports = [ ./hardware-configuration.nix
     gc.automatic = true;
     gc.dates = "weekly";
     gc.options = "--delete-older-than 30d";
-    #extraOptions = "experimental-features = nix-command flakes";
-    #package = pkgs.nixFlakes;
+    extraOptions = "experimental-features = nix-command flakes";
+    package = pkgs.nixFlakes;
   };
 
   system = {
