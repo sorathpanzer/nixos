@@ -1,5 +1,15 @@
 { config, pkgs, ... }:
 
+#let
+  #nvidia-offload = pkgs.writeShellScriptBin "nvidia-offload" ''
+    #export __NV_PRIME_RENDER_OFFLOAD=1
+    #export __NV_PRIME_RENDER_OFFLOAD_PROVIDER=NVIDIA-G0
+    #export __GLX_VENDOR_LIBRARY_NAME=nvidia
+    #export __VK_LAYER_NV_optimus=NVIDIA_only
+    #exec "$@"
+  #'';
+#in
+
 {
 imports = [ ./hardware-configuration.nix ];
 
@@ -59,11 +69,16 @@ imports = [ ./hardware-configuration.nix ];
       displayManager.lightdm.enable = false;
       displayManager.startx.enable = true;
       layout = "pt";
-      videoDrivers = [ "nvidia" ];
+      videoDrivers = [ "intel" ];
       deviceSection = ''
-        Option "DRI" "2"
-    	Option "TearFree" "true"
+        Option "DRI" "3"
+        Option "TearFree" "true"
       '';
+      #screenSection = ''
+        #Option         "metamodes" "nvidia-auto-select +0+0 {ForceFullCompositionPipeline=On}"
+        #Option         "AllowIndirectGLXProtocol" "off"
+        #Option         "TripleBuffer" "on"
+      #'';
       libinput = {
         enable = true;
         touchpad = {
@@ -87,17 +102,26 @@ imports = [ ./hardware-configuration.nix ];
 
   hardware = {
     #video.hidpi.enable = true;
-    nvidia.package = config.boot.kernelPackages.nvidiaPackages.stable;
-    opengl = {
-      enable = true;
-      extraPackages = with pkgs; [
-        intel-media-driver # LIBVA_DRIVER_NAME=iHD
-        vaapiIntel         # LIBVA_DRIVER_NAME=i965 (older but works better for Firefox/Chromium)
-        vaapiVdpau
-        libvdpau-va-gl
-      ];
+    #nvidia = {
+      #package = config.boot.kernelPackages.nvidiaPackages.stable;
+      #modesetting.enable = true;
+      #prime = {
+        #offload.enable = true;
+        #intelBusId = "PCI:0:2:0";
+        #nvidiaBusId = "PCI:1:0:0";
+      #};
     };
-  };
+    #opengl = {
+      #enable = true;
+      #driSupport32Bit = true;
+      #extraPackages = with pkgs; [
+        #intel-media-driver # LIBVA_DRIVER_NAME=iHD
+        #vaapiIntel         # LIBVA_DRIVER_NAME=i965 (older but works better for Firefox/Chromium)
+        #vaapiVdpau
+        #libvdpau-va-gl
+      #];
+    #};
+  #};
 
   users.users.sorath = {
     isNormalUser = true;
@@ -110,8 +134,8 @@ imports = [ ./hardware-configuration.nix ];
      android-tools btrfs-progs dunst feh ffmpeg ffmpegthumbnailer file firefox fzf gcc git gnumake groff i3lock imagemagick
      keepassxc killall lf light lm_sensors libreoffice-still mpv ncdu neovim ntfs3g openssh pandoc picom poppler_utils qemu
      python310Packages.adblock python39Packages.pip python39Packages.six qutebrowser scrot sox stow syncthing tdesktop
-     tig trash-cli udiskie ueberzug unzip usbutils w3m xclip xdg-user-dirs xdotool xorg.xf86videointel xorg.xinput xorg.xrandr jq
-      xorg.xrdb xorg.xset youtube-dl zathura pulseaudio dmenu signal-desktop bzip2 foot wayland-protocols hyprpaper mpvpaper waybar river dwl ydotool
+     tig trash-cli udiskie ueberzug unzip usbutils w3m xclip xdg-user-dirs xdotool xorg.xf86videointel xorg.xinput xorg.xrandr jq mesa-demos #nvidia-offload
+     xorg.xrdb xorg.xset youtube-dl zathura pulseaudio dmenu signal-desktop bzip2 foot wayland-protocols hyprpaper mpvpaper waybar river dwl ydotool
    (pkgs.st.overrideAttrs (oldAttrs: {
       name = "st";
       src = /home/sorath/.config/suckless/st-0.9;
@@ -127,7 +151,7 @@ imports = [ ./hardware-configuration.nix ];
   ];
 
   nixpkgs = {
-    config.allowUnfree = true;
+    #config.allowUnfree = true;
     overlays = [
       (self: super: {
         dwm = super.dwm.overrideAttrs (old: { src = /home/sorath/.config/suckless/dwm-6.4 ;});
