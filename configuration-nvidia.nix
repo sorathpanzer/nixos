@@ -132,7 +132,7 @@ imports = [ ./hardware-configuration.nix ];
   users.users.sorath = {
     isNormalUser = true;
     description = "sorath";
-    extraGroups = [ "networkmanager" "wheel" "disk" ];
+    extraGroups = [ "networkmanager" "wheel" "disk" "video" ];
     shell = pkgs.zsh;
   };
 
