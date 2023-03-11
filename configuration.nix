@@ -29,6 +29,16 @@ imports = [ ./hardware-configuration.nix ];
     numDevices = 4;
   };
 
+  hardware.opengl = {
+    enable = true;
+    extraPackages = with pkgs; [
+      intel-media-driver # LIBVA_DRIVER_NAME=iHD
+      vaapiIntel         # LIBVA_DRIVER_NAME=i965 (older but works better for Firefox/Chromium)
+      vaapiVdpau
+      libvdpau-va-gl
+    ];
+  };
+
   networking = {
     hostName = "LegionX";
     hostId = "ca1d6250";
@@ -96,8 +106,8 @@ imports = [ ./hardware-configuration.nix ];
      android-tools btrfs-progs dunst feh ffmpeg ffmpegthumbnailer file firefox fzf gcc git gnumake groff i3lock imagemagick
      keepassxc killall lf light lm_sensors libreoffice-still mpv ncdu neovim ntfs3g openssh pandoc picom poppler_utils qemu
      python310Packages.adblock python39Packages.pip python39Packages.six qutebrowser scrot sox stow syncthing tdesktop
-     tig trash-cli udiskie ueberzug unzip usbutils w3m xclip xdg-user-dirs xdotool xorg.xf86videointel xorg.xinput xorg.xrandr jq
-     xorg.xrdb xorg.xset youtube-dl zathura pulseaudio dmenu signal-desktop bzip2 foot wayland-protocols hyprpaper mpvpaper waybar river dwl ydotool
+     tig trash-cli udiskie ueberzug unzip usbutils w3m xclip xdg-user-dirs xdotool xorg.xf86videointel xorg.xinput xorg.xrandr jq imv viewnior
+     xorg.xrdb xorg.xset youtube-dl zathura pulseaudio dmenu signal-desktop bzip2 foot wayland-protocols hyprpaper mpvpaper waybar river dwl ydotool tofi alacritty
    (pkgs.st.overrideAttrs (oldAttrs: {
       name = "st";
       src = /home/sorath/.config/suckless/st-0.9;
@@ -106,14 +116,17 @@ imports = [ ./hardware-configuration.nix ];
       name = "dwmblocks";
       src = /home/sorath/.config/suckless/dwmblocks;
     }))
-    (pkgs.sxiv.overrideAttrs (oldAttrs: {
-      name = "sxiv";
-      src = /home/sorath/.config/suckless/sxiv;
-    }))
+#    (pkgs.sxiv.overrideAttrs (oldAttrs: {
+#      name = "sxiv";
+#      src = /home/sorath/.config/suckless/sxiv;
+#    }))
   ];
 
   nixpkgs = {
     #config.allowUnfree = true;
+    config.packageOverrides = pkgs: {
+      vaapiIntel = pkgs.vaapiIntel.override { enableHybridCodec = true; };
+    };
     overlays = [
       (self: super: {
         dwm = super.dwm.overrideAttrs (old: { src = /home/sorath/.config/suckless/dwm-6.4 ;});
@@ -125,6 +138,7 @@ imports = [ ./hardware-configuration.nix ];
   };
 
   programs = {
+    xwayland.enable = false;
     adb.enable = true;
     light.enable = true;
     waybar.enable = true;
