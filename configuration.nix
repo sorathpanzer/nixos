@@ -15,6 +15,10 @@ imports = [ ./hardware-configuration.nix ];
     initrd.secrets = { "/crypto_keyfile.bin" = null; };
     initrd.verbose = false;
     extraModprobeConfig = "options kvm_intel nested=1";
+    kernel.sysctl = {
+      "vm.max_map_count" = "2147483642";
+      "vm.swappiness" = "5";
+    };
     loader = {
       systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;
@@ -31,8 +35,6 @@ imports = [ ./hardware-configuration.nix ];
   zramSwap = {
     enable = true;
     algorithm = "zstd";
-    swapDevices = 4;
-    numDevices = 4;
   };
 
   hardware = {
@@ -67,6 +69,7 @@ imports = [ ./hardware-configuration.nix ];
     udisks2.enable = true;
         udev.extraRules = ''
     SUBSYSTEM=="usb", ATTR{idVendor}=="18d1", ATTR{idProduct}=="0000", MODE="0600", OWNER="sorath"
+    SUBSYSTEM=="usb", ATTR{idVendor}=="1209", ATTR{idProduct}=="0003", MODE="0600", OWNER="sorath"
   '';
     syncthing = {
       enable = true;
@@ -132,23 +135,24 @@ imports = [ ./hardware-configuration.nix ];
 
   environment.systemPackages = with pkgs; [
     gcc gnumake btrfs-progs ntfs3g openssh
-#    xorg.xinput xorg.xrandr xorg.xf86videointel xorg.xrdb xorg.xset xdotool i3lock mpv ffmpegthumbnailer dmenu ueberzug feh imv
+    xorg.xinput xorg.xrandr xorg.xf86videointel xorg.xrdb xorg.xset xdotool i3lock ffmpegthumbnailer dmenu ueberzug feh imv
     dunst ffmpeg fzf git groff imagemagick file sanoid zip clamav killall lf light lm_sensors ncdu neovim pandoc poppler_utils
-    scrot sox stow syncthing tig trash-cli udiskie unzip usbutils w3m xdg-user-dirs jq yt-dlp zathura pulseaudio bzip2
-    firefox popcorntime keepassxc libreoffice-still tdesktop fragments signal-desktop
-    python310Packages.adblock python39Packages.pip python39Packages.six qutebrowser
+    scrot sox stow syncthing tig trash-cli udiskie unzip usbutils w3m xdg-user-dirs jq yt-dlp zathura pulseaudio bzip2 mpv bc
+    firefox popcorntime keepassxc libreoffice-still tdesktop fragments signal-desktop logseq ghostscript
+    python310Packages.adblock python39Packages.pip python39Packages.six qutebrowser slurp libnotify grim calibre
     appimage-run android-udev-rules android-file-transfer android-tools
     qemu virt-manager docker-compose spice libvirt bridge-utils
     foot wayland-protocols hyprpaper waybar ydotool tofi alacritty wl-clipboard grim swaybg mpvpaper libsForQt5.pix
-    wineWowPackages.stable wineWowPackages.waylandFull wget (wine.override { wineBuild = "wine64"; })
-#   (pkgs.st.overrideAttrs (oldAttrs: {
-#      name = "st";
-#      src = /home/sorath/.config/suckless/st-0.9;
-#    }))
-#    (pkgs.dwmblocks.overrideAttrs (oldAttrs: {
-#      name = "dwmblocks";
-#      src = /home/sorath/.config/suckless/dwmblocks;
-#    }))
+    wineWowPackages.stable wineWowPackages.waylandFull wget wofi (wine.override { wineBuild = "wine64"; })
+    gthumb brave
+   (pkgs.st.overrideAttrs (oldAttrs: {
+      name = "st";
+      src = /home/sorath/.config/suckless/st-0.9;
+    }))
+    (pkgs.dwmblocks.overrideAttrs (oldAttrs: {
+      name = "dwmblocks";
+      src = /home/sorath/.config/suckless/dwmblocks;
+    }))
 #    (pkgs.sxiv.overrideAttrs (oldAttrs: {
 #      name = "sxiv";
 #      src = /home/sorath/.config/suckless/sxiv;
@@ -157,6 +161,9 @@ imports = [ ./hardware-configuration.nix ];
 
   nixpkgs = {
     #config.allowUnfree = true;
+    #config.permittedInsecurePackages = [
+      #"electron-20.3.11"
+    #];
     config.packageOverrides = pkgs: {
       vaapiIntel = pkgs.vaapiIntel.override { enableHybridCodec = true; };
     };
@@ -185,6 +192,7 @@ imports = [ ./hardware-configuration.nix ];
     adb.enable = true;
     light.enable = true;
     waybar.enable = true;
+    zsh.enable = true;
   };
 
   sound.enable = true;
@@ -210,8 +218,8 @@ imports = [ ./hardware-configuration.nix ];
     copySystemConfiguration = true;
     autoUpgrade = {
       enable = true;
-      dates = "weekly";
+      dates = "daily";
     };
-    stateVersion = "22.11";
+    stateVersion = "23.05";
   };
 }
