@@ -1,8 +1,24 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib,... }:
 
 let
 
   FLATPAK = true;
+
+  unstable = import
+    (builtins.fetchTarball https://github.com/nixos/nixpkgs/tarball/master)
+    # reuse the current configuration
+    { config = config.nixpkgs.config; };
+
+# (!) Não está a criar este ficheiro (!)
+  #swaylock-pam = pkgs.writeTextFile {
+    #name = "swaylock-pam";
+    #destination = "/etc/pam.d/swaylock-pam";
+    #executable = false;
+
+    #text = ''
+      #auth include login
+    #'';
+  #};
 
 in
 {
@@ -10,8 +26,10 @@ imports = [ ./hardware-configuration.nix ];
 
   boot = {
     supportedFilesystems = [ "zfs" ];
+    zfs.forceImportRoot = false;
     consoleLogLevel = 0;
     kernelParams = [ "quiet" "udev.log_level=3" ];
+    kernelModules = [ "uinput" ];
     initrd.secrets = { "/crypto_keyfile.bin" = null; };
     initrd.verbose = false;
     extraModprobeConfig = "options kvm_intel nested=1";
@@ -26,8 +44,16 @@ imports = [ ./hardware-configuration.nix ];
     };
   };
 
-  fileSystems."/media/Bunker" = {
-    device = "192.168.1.104:/mnt/Bunker/Vault";
+  #fileSystems."/media/Bunker/Vault" = {
+  fileSystems."/run/media/sorath/Bunker/Vault" = {
+    device = "192.168.1.120:/mnt/Bunker/Vault";
+    fsType = "nfs";
+    options = [ "noauto" ];
+  };
+
+  #fileSystems."/media/Bunker/Crypta" = {
+  fileSystems."/run/media/sorath/Bunker/Crypta" = {
+    device = "192.168.1.120:/mnt/Bunker/Crypta";
     fsType = "nfs";
     options = [ "noauto" ];
   };
@@ -53,10 +79,13 @@ imports = [ ./hardware-configuration.nix ];
   };
 
   networking = {
+    nameservers = [ "127.0.0.1" "::1" ];
     hostName = "LegionX";
     hostId = "ca1d6250";
     networkmanager.enable = true;
+    networkmanager.dns = "none";
     firewall.enable = true;
+    enableIPv6 = false;
     wireguard = {
       enable = true;
     };
@@ -64,6 +93,29 @@ imports = [ ./hardware-configuration.nix ];
   };
 
   services = {
+    tumbler.enable = true;
+    tor.enable = true;
+    spice-vdagentd.enable = true;
+    dnscrypt-proxy2 = {
+    enable = true;
+    settings = {
+      ipv6_servers = true;
+      require_dnssec = true;
+
+      sources.public-resolvers = {
+        urls = [
+          "https://raw.githubusercontent.com/DNSCrypt/dnscrypt-resolvers/master/v3/public-resolvers.md"
+          "https://download.dnscrypt.info/resolvers-list/v3/public-resolvers.md"
+        ];
+        cache_file = "/var/lib/dnscrypt-proxy2/public-resolvers.md";
+        minisign_key = "RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3";
+      };
+
+      # You can choose a specific set of servers from https://github.com/DNSCrypt/dnscrypt-resolvers/blob/master/v3/public-resolvers.md
+      # server_names = [ ... ];
+    };
+  };
+    fwupd.enable = true;
     blueman.enable = true;
     getty.autologinUser = "sorath";
     udisks2.enable = true;
@@ -84,9 +136,7 @@ imports = [ ./hardware-configuration.nix ];
     };
     xserver = {
       enable = true;
-      windowManager.dwm.enable = true;
       displayManager.lightdm.enable = false;
-      displayManager.startx.enable = true;
       layout = "pt";
       videoDrivers = [ "intel" ];
       deviceSection = ''
@@ -102,17 +152,27 @@ imports = [ ./hardware-configuration.nix ];
         };
       };
     };
+    cron = {
+      enable = true;
+      systemCronJobs = [
+        "0 14,22,6 * * *      root    flatpak update >> /tmp/cron.log"
+      ];
+    };
   };
 
-  security.sudo.extraRules= [
-    {  users = [ "sorath" ];
-      commands = [
-        { command = "/run/current-system/sw/bin/reboot,/run/current-system/sw/bin/poweroff,/run/current-system/sw/bin/zpool,/run/current-system/sw/bin/wg,/run/current-system/sw/bin/setleds,/run/current-system/sw/bin/zpool" ;
-          options= [ "NOPASSWD" ];
-        }
-      ];
-    }
-  ];
+  security = {
+    polkit.enable = true;
+    #apparmor.enable = true;
+    sudo.extraRules= [
+      {  users = [ "sorath" ];
+        commands = [
+          { command = "/run/current-system/sw/bin/reboot,/run/current-system/sw/bin/poweroff,/run/current-system/sw/bin/zpool,/run/current-system/sw/bin/wg,/run/current-system/sw/bin/setleds,/run/current-system/sw/bin/zpool" ;
+            options= [ "NOPASSWD" ];
+          }
+        ];
+      }
+    ];
+  };
 
   virtualisation.libvirtd = {
     enable = true;
@@ -126,6 +186,28 @@ imports = [ ./hardware-configuration.nix ];
     };
   };
 
+  systemd = {
+  services.dnscrypt-proxy2.serviceConfig = {
+    StateDirectory = "dnscrypt-proxy";
+  };
+  user.services.polkit-gnome-authentication-agent-1 = {
+    description = "polkit-gnome-authentication-agent-1";
+    wantedBy = [ "graphical-session.target" ];
+    wants = [ "graphical-session.target" ];
+    after = [ "graphical-session.target" ];
+    serviceConfig = {
+        Type = "simple";
+        ExecStart = "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1";
+        Restart = "on-failure";
+        RestartSec = 1;
+        TimeoutStopSec = 10;
+      };
+  };
+   extraConfig = ''
+     DefaultTimeoutStopSec=10s
+   '';
+};
+
   users.users.sorath = {
     isNormalUser = true;
     description = "sorath";
@@ -133,34 +215,50 @@ imports = [ ./hardware-configuration.nix ];
     shell = pkgs.zsh;
   };
 
-  environment.systemPackages = with pkgs; [
-    gcc gnumake btrfs-progs ntfs3g openssh
-    xorg.xinput xorg.xrandr xorg.xf86videointel xorg.xrdb xorg.xset xdotool i3lock ffmpegthumbnailer dmenu ueberzug feh imv
-    dunst ffmpeg fzf git groff imagemagick file sanoid zip clamav killall lf light lm_sensors ncdu neovim pandoc poppler_utils
-    scrot sox stow syncthing tig trash-cli udiskie unzip usbutils w3m xdg-user-dirs jq yt-dlp zathura pulseaudio bzip2 mpv bc
-    firefox popcorntime keepassxc libreoffice-still tdesktop fragments signal-desktop logseq ghostscript
-    python310Packages.adblock python39Packages.pip python39Packages.six qutebrowser slurp libnotify grim calibre
-    appimage-run android-udev-rules android-file-transfer android-tools
-    qemu virt-manager docker-compose spice libvirt bridge-utils
-    foot wayland-protocols hyprpaper waybar ydotool tofi alacritty wl-clipboard grim swaybg mpvpaper libsForQt5.pix
-    wineWowPackages.stable wineWowPackages.waylandFull wget wofi (wine.override { wineBuild = "wine64"; })
-    gthumb brave
-   (pkgs.st.overrideAttrs (oldAttrs: {
-      name = "st";
-      src = /home/sorath/.config/suckless/st-0.9;
-    }))
-    (pkgs.dwmblocks.overrideAttrs (oldAttrs: {
-      name = "dwmblocks";
-      src = /home/sorath/.config/suckless/dwmblocks;
-    }))
-#    (pkgs.sxiv.overrideAttrs (oldAttrs: {
-#      name = "sxiv";
-#      src = /home/sorath/.config/suckless/sxiv;
-#    }))
-  ];
+  users.users.marcia = {
+    isNormalUser = true;
+    description = "marcia";
+    extraGroups = [ "networkmanager" "wheel" "disk" "video" "plugdev" ];
+    shell = pkgs.zsh;
+  };
+
+  environment = {
+    etc = {
+	  "wireplumber/bluetooth.lua.d/51-bluez-config.lua".text = ''
+		bluez_monitor.properties = {
+			["bluez5.enable-sbc-xq"] = true,
+			["bluez5.enable-msbc"] = true,
+			["bluez5.enable-hw-volume"] = true,
+			["bluez5.headset-roles"] = "[ hsp_hs hsp_ag hfp_hf hfp_ag ]"
+		}
+	'';
+};
+    sessionVariables.NIXOS_OZONE_WL = "1";
+    systemPackages = with pkgs; [
+      gcc gnumake btrfs-progs ntfs3g openssh arp-scan
+      dunst ffmpeg ffmpegthumbnailer fzf git groff imagemagick file sanoid zip clamav killall lf light lm_sensors neovim pandoc poppler_utils imv unar
+      scrot sox stow syncthing tig trash-cli udiskie unzip usbutils w3m xdg-user-dirs jq yt-dlp zathura pulseaudio bzip2 mpv bc mediainfo
+
+      python310Packages.adblock python39Packages.pip python39Packages.six qutebrowser-qt6 gparted
+      appimage-run android-udev-rules android-file-transfer android-tools
+      qemu virt-manager docker-compose spice libvirt bridge-utils
+      wineWowPackages.waylandFull
+      foot wayland-protocols unstable.waybar ydotool tofi alacritty wl-clipboard grim mpvpaper slurp libnotify swww
+      popcorntime keepassxc libreoffice-still tdesktop fragments signal-desktop logseq ghostscript
+      chatgpt-cli vimPlugins.ChatGPT-nvim nvd librewolf
+      unstable.hyprland dua xfce.tumbler unstable.yazi vimiv-qt
+      tor-browser-bundle-bin kitty kitty-themes nnn calibre ly swaylock qimgv
+    ];
+  };
+
+  programs.steam = {
+	  enable = true;
+	  remotePlay.openFirewall = true; # Open ports in the firewall for Steam Remote Play
+	  dedicatedServer.openFirewall = true; # Open ports in the firewall for Source Dedicated Server
+	};
 
   nixpkgs = {
-    #config.allowUnfree = true;
+    config.allowUnfree = true;
     #config.permittedInsecurePackages = [
       #"electron-20.3.11"
     #];
@@ -169,7 +267,6 @@ imports = [ ./hardware-configuration.nix ];
     };
     overlays = [
       (self: super: {
-        dwm = super.dwm.overrideAttrs (old: { src = /home/sorath/.config/suckless/dwm-6.4 ;});
         waybar = super.waybar.overrideAttrs (oldAttrs: {
           mesonFlags = oldAttrs.mesonFlags ++ [ "-Dexperimental=true" ];
         });
@@ -178,32 +275,49 @@ imports = [ ./hardware-configuration.nix ];
   };
 
 # Fonts
-  fonts.fonts = with pkgs; [
+fonts = {
+  fonts = with pkgs; [
     fira-code
     fira
     jetbrains-mono
     fira-code-symbols
     powerline-fonts
     nerdfonts
+    noto-fonts
+    noto-fonts-cjk
+    noto-fonts-emoji
+    (nerdfonts.override { fonts = [ "Meslo" ]; })
   ];
+  fontconfig = {
+      enable = true;
+      defaultFonts = {
+	      monospace = [ "Meslo LG M Regular Nerd Font Complete Mono" ];
+	      serif = [ "Noto Serif" "Source Han Serif" ];
+	      sansSerif = [ "Noto Sans" "Source Han Sans" ];
+      };
+    };
+};
 
   programs = {
+    hyprland.enable = true;
     xwayland.enable = false;
+    hyprland.xwayland.enable = false;
     adb.enable = true;
     light.enable = true;
     waybar.enable = true;
     zsh.enable = true;
+    neovim = {
+      enable = true;
+      defaultEditor = true;
+      viAlias = true;
+      vimAlias = true;
+    };
   };
 
   sound.enable = true;
   time.timeZone = "Europe/Lisbon";
   i18n.defaultLocale = "pt_PT.utf8";
   console.keyMap = "pt-latin1";
-
-  xdg.portal = {
-    enable = true;
-    extraPortals = with pkgs; [ xdg-desktop-portal-gtk ];
-  };
 
   nix = {
     settings.auto-optimise-store = true;
