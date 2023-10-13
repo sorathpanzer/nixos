@@ -9,20 +9,41 @@ let
     # reuse the current configuration
     { config = config.nixpkgs.config; };
 
-# (!) Não está a criar este ficheiro (!)
-  #swaylock-pam = pkgs.writeTextFile {
-    #name = "swaylock-pam";
-    #destination = "/etc/pam.d/swaylock-pam";
-    #executable = false;
-
-    #text = ''
-      #auth include login
-    #'';
-  #};
-
 in
 {
 imports = [ ./hardware-configuration.nix ];
+
+  environment = {
+    etc = {
+    "pam.d/swaylock".text = ''
+    auth include login
+    '';
+	  "wireplumber/bluetooth.lua.d/51-bluez-config.lua".text = ''
+		bluez_monitor.properties = {
+			["bluez5.enable-sbc-xq"] = true,
+			["bluez5.enable-msbc"] = true,
+			["bluez5.enable-hw-volume"] = true,
+			["bluez5.headset-roles"] = "[ hsp_hs hsp_ag hfp_hf hfp_ag ]"
+		}
+	'';
+};
+    sessionVariables.NIXOS_OZONE_WL = "1";
+    systemPackages = with pkgs; [
+      gcc gnumake btrfs-progs ntfs3g openssh arp-scan
+      dunst ffmpeg ffmpegthumbnailer fzf git groff imagemagick file sanoid zip clamav killall lf light lm_sensors neovim pandoc poppler_utils imv unar
+      scrot sox stow syncthing tig trash-cli udiskie unzip usbutils w3m xdg-user-dirs jq yt-dlp zathura pulseaudio bzip2 mpv bc mediainfo ripgrep lzop
+      python310Packages.adblock python39Packages.pip python39Packages.six qutebrowser-qt6 gparted
+      appimage-run android-udev-rules android-file-transfer android-tools
+      qemu virt-manager docker-compose spice libvirt bridge-utils
+      wineWowPackages.waylandFull
+      foot wayland-protocols ydotool tofi alacritty wl-clipboard grim mpvpaper slurp libnotify swww
+      popcorntime keepassxc libreoffice-still tdesktop fragments signal-desktop logseq ghostscript
+      chatgpt-cli vimPlugins.ChatGPT-nvim nvd librewolf
+      unstable.hyprland unstable.waybar unstable.yazi dua xfce.tumbler vimiv-qt hyprpicker
+      calibre ly swaylock qimgv
+      helix nodePackages.bash-language-server marksman lf fd whatsapp-for-linux
+    ];
+  };
 
   boot = {
     supportedFilesystems = [ "zfs" ];
@@ -44,15 +65,13 @@ imports = [ ./hardware-configuration.nix ];
     };
   };
 
-  #fileSystems."/media/Bunker/Vault" = {
-  fileSystems."/run/media/sorath/Bunker/Vault" = {
+  fileSystems."/media/Bunker/Vault" = {
     device = "192.168.1.120:/mnt/Bunker/Vault";
     fsType = "nfs";
     options = [ "noauto" ];
   };
 
-  #fileSystems."/media/Bunker/Crypta" = {
-  fileSystems."/run/media/sorath/Bunker/Crypta" = {
+  fileSystems."/media/Bunker/Crypta" = {
     device = "192.168.1.120:/mnt/Bunker/Crypta";
     fsType = "nfs";
     options = [ "noauto" ];
@@ -110,9 +129,6 @@ imports = [ ./hardware-configuration.nix ];
         cache_file = "/var/lib/dnscrypt-proxy2/public-resolvers.md";
         minisign_key = "RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3";
       };
-
-      # You can choose a specific set of servers from https://github.com/DNSCrypt/dnscrypt-resolvers/blob/master/v3/public-resolvers.md
-      # server_names = [ ... ];
     };
   };
     fwupd.enable = true;
@@ -187,6 +203,7 @@ imports = [ ./hardware-configuration.nix ];
   };
 
   systemd = {
+  oomd.enable = false;
   services.dnscrypt-proxy2.serviceConfig = {
     StateDirectory = "dnscrypt-proxy";
   };
@@ -220,35 +237,6 @@ imports = [ ./hardware-configuration.nix ];
     description = "marcia";
     extraGroups = [ "networkmanager" "wheel" "disk" "video" "plugdev" ];
     shell = pkgs.zsh;
-  };
-
-  environment = {
-    etc = {
-	  "wireplumber/bluetooth.lua.d/51-bluez-config.lua".text = ''
-		bluez_monitor.properties = {
-			["bluez5.enable-sbc-xq"] = true,
-			["bluez5.enable-msbc"] = true,
-			["bluez5.enable-hw-volume"] = true,
-			["bluez5.headset-roles"] = "[ hsp_hs hsp_ag hfp_hf hfp_ag ]"
-		}
-	'';
-};
-    sessionVariables.NIXOS_OZONE_WL = "1";
-    systemPackages = with pkgs; [
-      gcc gnumake btrfs-progs ntfs3g openssh arp-scan
-      dunst ffmpeg ffmpegthumbnailer fzf git groff imagemagick file sanoid zip clamav killall lf light lm_sensors neovim pandoc poppler_utils imv unar
-      scrot sox stow syncthing tig trash-cli udiskie unzip usbutils w3m xdg-user-dirs jq yt-dlp zathura pulseaudio bzip2 mpv bc mediainfo
-
-      python310Packages.adblock python39Packages.pip python39Packages.six qutebrowser-qt6 gparted
-      appimage-run android-udev-rules android-file-transfer android-tools
-      qemu virt-manager docker-compose spice libvirt bridge-utils
-      wineWowPackages.waylandFull
-      foot wayland-protocols unstable.waybar ydotool tofi alacritty wl-clipboard grim mpvpaper slurp libnotify swww
-      popcorntime keepassxc libreoffice-still tdesktop fragments signal-desktop logseq ghostscript
-      chatgpt-cli vimPlugins.ChatGPT-nvim nvd librewolf
-      unstable.hyprland dua xfce.tumbler unstable.yazi vimiv-qt
-      tor-browser-bundle-bin kitty kitty-themes nnn calibre ly swaylock qimgv
-    ];
   };
 
   programs.steam = {
